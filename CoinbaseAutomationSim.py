@@ -20,7 +20,10 @@ cryptoList = list()
     
 def updateFromCoinbase(cryptos, doBuy):
     global funding
-    response = requests.get(uri).json()
+    try:
+        response = requests.get(uri).json()
+    except:
+        return
     for key in response['data']:
       #print(key['base'], key['base_id'], key['prices']['latest'])
       found = False
@@ -61,7 +64,7 @@ def calculateProfit(crypt):
     return sum
         
 updateFromCoinbase(cryptoList, False)
-del cryptoList[-1]          #test to find a "new" crypto and buy it
+#del cryptoList[-1]          #test to find a "new" crypto and buy it
 while(True):
     updateFromCoinbase(cryptoList, True)
     print("funds:", funding, " overall profit:", calculateProfit(cryptoList))
