@@ -28,7 +28,7 @@ def updateFromCoinbase(cryptos, doBuy):
       #print(key['base'], key['base_id'], key['prices']['latest'])
       found = False
       for i in range(len(cryptos)):
-          if cryptos[i].name == key['base']:
+          if cryptos[i].base_id == key['base_id']:
               found = True
               cryptos[i].latest = float(key['prices']['latest'])
               cryptos[i].value = cryptos[i].latest * cryptos[i].balance
