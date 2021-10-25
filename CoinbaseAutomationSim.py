@@ -37,7 +37,8 @@ def writeLogFile(file_name, text_to_append):
         # write formatted timestamp
         
         # Append text at the end of file
-        file_object.write(time.strftime('{%Y-%m-%d %H:%M:%S}') + text_to_append)
+        file_object.write(time.strftime('{%Y-%m-%d %H:%M:%S}') + " " + text_to_append)
+        print(time.strftime('{%Y-%m-%d %H:%M:%S}') + " " + text_to_append)
 
     
 def updateFromCoinbase(cryptos, doBuy):
@@ -62,7 +63,7 @@ def updateFromCoinbase(cryptos, doBuy):
                  cryptos[i].value = 0.0
                  cryptos[i].cost = 0.0
                  cryptos[i].balance = 0.0
-                 writeLogFile(logFileName, str(cryptos[i].name) + "sold! new funding balance:" + str(funding))
+                 writeLogFile(logFileName, str(cryptos[i].name) + " sold! new funding balance: " + str(funding))
       if(found == False):
           newCrypto = crypto(key['base'], key['base_id'])
           newCrypto.latest = float(key['prices']['latest'])
@@ -74,10 +75,12 @@ def updateFromCoinbase(cryptos, doBuy):
                       funding = 0.0
                       newCrypto.value = newCrypto.balance * newCrypto.latest
                       newCrypto.cost = newCrypto.value
-                      print("new crypto found", newCrypto.name, newCrypto.base_id, newCrypto.latest)
-                      writeLogFile(logFileName, "new crypto found" + str(newCrypto.name) + str(newCrypto.base_id) + str(newCrypto.latest))
-                      print("purchase made.",newCrypto.name, "$", funding, "balance:", newCrypto.balance)
-                      writeLogFile(logFileName, "purchase made." + str(newCrypto.name) + "$" + str(funding) + "balance:" + str(newCrypto.balance))
+                      #print("new crypto found", newCrypto.name, newCrypto.base_id, newCrypto.latest)
+                      writeLogFile(logFileName, "new crypto found! " + str(newCrypto.name) + ", " + str(newCrypto.base_id) + ", Current Price: " + str(newCrypto.latest))
+                      #print("purchase made.",newCrypto.name, "$", funding, "balance:", newCrypto.balance)
+                      writeLogFile(logFileName, "purchase made. " + str(newCrypto.balance) +  str(newCrypto.name) + ", New Funding Balance: $" + str(funding))
+              else:
+                      writeLogFile(logFileName, "Crypto not in database found, but the database is too stale. update without purchase.")
           cryptos.append(newCrypto)
           
 def pickleLog(crypt):
@@ -113,33 +116,35 @@ def restorePickle():
         #bal.close()
         #outfile.close()
     
-        
-        
-
 def calculateProfit(crypt):
     global funding
     global initialFunding
     sum = 0
     for i in range(len(crypt)):
         if(crypt[i].balance > 0):
-            print(crypt[i].name, "bal", crypt[i].balance, "value:", crypt[i].value)
+            #print(crypt[i].name, "bal", crypt[i].balance, "value:", crypt[i].value)
             sum += crypt[i].value - crypt[i].cost
     if(funding > 0):
         sum += funding - initialFunding
     return sum
         
-#updateFromCoinbase(cryptoList, False)
 restorePickle()
 
-writeLogFile(logFileName, "funding: " + str(funding))
+writeLogFile(logFileName, "funding: $" + str(funding))
 for i in range(len(cryptoList)):
         if(cryptoList[i].balance > 0):
-            writeLogFile(logFileName, str(cryptoList[i].name) + "bal" + str(cryptoList[i].balance) + "value:" + str(cryptoList[i].value))
-            
-#del cryptoList[-1]          #test to find a "new" crypto and buy it
+            writeLogFile(logFileName, str(cryptoList[i].balance) + str(cryptoList[i].name) + ", value: " + str(cryptoList[i].value))
+
+lastUpdateProfit = 0
+#del cryptoList[-1]          #test to find a "new" crypto and buy it\
+
 while(True):
     updateFromCoinbase(cryptoList, True)
-    print("funds:", funding, " overall profit:", calculateProfit(cryptoList))
+    profit = calculateProfit(cryptoList)
+    if(profit != lastUpdateProfit):
+        #print("funds: $" + str(funding), "overall profit: $" + str(profit))
+        writeLogFile(logFileName, "funds: $" + str(funding) + ", overall profit: $" + str(profit))
+    lastUpdateProfit = profit
     pickleLog(cryptoList)
     time.sleep(0.5)
     
